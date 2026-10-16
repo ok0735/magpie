@@ -542,7 +542,25 @@ func readView(problems []Problem, glance bool) (*View, error) {
 
 // ---- servers --------------------------------------------------------------
 
+// Servers are the MCP servers the library keeps, as they are: a copy, for a
+// host that says what a paste would change before it writes (the chat
+// window's MCP paste, agentchat.go).
+func Servers() []Server {
+	mu.Lock()
+	defer mu.Unlock()
+	l, err := load()
+	if err != nil {
+		return nil
+	}
+	out := make([]Server, 0, len(l.MCP))
+	for _, s := range l.MCP {
+		out = append(out, *s)
+	}
+	return out
+}
+
 // SaveServer adds a server, or replaces the one called old (renaming it).
+// Only the agents it is given to are written into.
 func SaveServer(old string, s Server) (*Result, error) {
 	if err := s.check(); err != nil {
 		return nil, err

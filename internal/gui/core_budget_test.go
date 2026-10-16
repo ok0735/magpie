@@ -16,7 +16,7 @@ import (
 // raises them and says why in its commit.
 const (
 	appScriptBudget  = 1_269_000 // app.js: 1,198,239 after Usage left (P2); 1,218,098 with the 10-15 fixes to pages still in the core; 1,232,466 with the provider editor's Advanced fold and every dialog holding its place, the core's own (10-16); 1,250,533 with the quota refresh kept through redraws, the core's own since the tray panel draws it too, plus 1.5% (#2397)
-	coreScriptBudget = 1_447_000 // every core script: 1,358,034 after Usage left; 1,380,003 with them; 1,405,937 with the fold; 1,426,102 with 10-16's core work (the GitHub list loading, the move to plugins, Settings › Long conversations), plus 1.5% (#2612)
+	coreScriptBudget = 1_489_000 // every core script: 1,358,034 after Usage left; 1,380,003 with them; 1,405,937 with the fold; 1,426,102 with 10-16's core work (the GitHub list loading, the move to plugins, Settings › Long conversations), plus 1.5% (#2612); 1,467,016 with chat.js re-based on 10-18's upstream (12,253 bytes: the fork's assistant window beside the Providers page — a paste of a model name, a base URL and a key adds the provider, fetches its models and keeps the ones that answer), plus 1.5%
 )
 
 func TestCoreScriptBudget(t *testing.T) {

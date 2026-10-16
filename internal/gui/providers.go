@@ -977,6 +977,10 @@ func providerRoutes(mux *http.ServeMux, w Windows) {
 	contextRoutesAPI(mux)
 	tuneRoutes(mux)
 	groupRoutes(mux)
+	// the chat window beside the Providers page: a paste of a model name, a
+	// base URL and a key adds the provider, fetches its models and keeps the
+	// ones that answer (agentchat.go)
+	agentChatRoutes(mux)
 	// how each key's or account's requests stand under its limit on
 	// requests at once (#892), read every two seconds while a provider's
 	// rows are shown; empty when the gateway runs elsewhere

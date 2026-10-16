@@ -1,0 +1,157 @@
+/* The chat window beside the Providers page (chat.js): paste a model name, a
+   base URL and a key, and magpie adds the provider, fetches its models and
+   keeps the ones that answer. Its own page's styles are app.css's; only what
+   is this window's is here. */
+
+.agent-chat {
+  position: fixed;
+  right: 12px;
+  top: 52px;
+  bottom: auto;
+  width: 340px;
+  height: min(56vh, 460px);
+  max-height: calc(100vh - 66px);
+  max-width: calc(100vw - 16px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  z-index: 40;
+  overflow: hidden;
+  font: 12.5px/1.5 var(--font);
+}
+.agent-chat[hidden] { display: none; }
+@media (max-width: 600px) {
+  .agent-chat { left: 8px; right: 8px; width: auto; top: 48px; height: min(62vh, 520px); }
+}
+
+.agent-chat-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card-2);
+  --wails-draggable: no-drag;
+}
+.agent-chat-head b { font-size: 13px; font-weight: 650; }
+.agent-chat-sub { color: var(--muted); font-size: 11.5px; }
+.agent-chat-x {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 16px/1 var(--font);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.agent-chat-x:hover { background: var(--pill-hover); color: var(--fg); }
+
+.agent-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ac-msg { border-radius: 10px; padding: 7px 10px; white-space: pre-wrap; word-break: break-word; }
+.ac-msg.me { background: var(--pill); }
+.ac-msg.note { background: none; padding: 0; color: var(--muted); font-size: 12px; }
+.ac-msg.run { background: none; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ac-run-head { font-weight: 600; font-size: 12px; color: var(--fg-2); margin-bottom: 2px; }
+.ac-run-head.done { color: var(--muted); font-weight: 500; }
+
+.ac-row { display: flex; gap: 7px; align-items: flex-start; padding: 1px 0; }
+.ac-row .ac-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--faint);
+  margin-top: 5px; flex: none;
+}
+.ac-row.info .ac-dot { background: var(--accent); }
+.ac-row.ok .ac-dot { background: var(--green); }
+.ac-row.warn .ac-dot { background: var(--amber); }
+.ac-row.err .ac-dot { background: var(--red); }
+.ac-row .ac-text { flex: 1; min-width: 0; }
+.ac-row .ac-mono { font-family: var(--code); font-size: 12px; }
+.ac-row .ac-dim { color: var(--muted); }
+.ac-row .ac-said { color: var(--red); font-size: 12px; word-break: break-word; }
+
+.ac-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--card-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ac-card .ac-note { color: var(--muted); font-size: 12px; }
+.ac-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ac-chip {
+  font-family: var(--code);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.ac-chip.keep { background: var(--green-soft); color: var(--green); border-color: color-mix(in srgb, var(--green) 25%, transparent); }
+.ac-chip.drop { background: var(--amber-soft); color: var(--amber); border-color: color-mix(in srgb, var(--amber) 25%, transparent); }
+
+.agent-chat-opts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--line-2);
+  color: var(--muted);
+  font-size: 11.5px;
+  --wails-draggable: no-drag;
+}
+.agent-chat-opts input[type="number"] {
+  width: 54px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--pill);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+
+.agent-chat-foot {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 7px 10px 9px;
+  border-top: 1px solid var(--line);
+  --wails-draggable: no-drag;
+}
+.agent-chat-foot textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  resize: vertical;
+  font: 11.5px/1.45 var(--code);
+  color: var(--fg);
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 8px;
+}
+.agent-chat-foot textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.agent-chat-send {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: 600 12px/1 var(--font);
+  padding: 9px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.agent-chat-send:disabled { opacity: .55; cursor: default; }
