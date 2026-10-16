@@ -4,6 +4,17 @@
 
 # magpie
 
+> **Unofficial fork.** This is [yetone/magpie](https://github.com/yetone/magpie) (MIT) with
+> four additions of mine: an AI assistant window (paste a model, a URL and a key — or an
+> MCP config — and it is added, tested and kept), right-click **Remove from the list**,
+> **Invert selection**, and **Remove picked**. [FORK.md](FORK.md) describes them and how to
+> build this build. Not affiliated with the upstream project, which doesn't take pull
+> requests.
+>
+> **Prebuilt Windows x64 binary:** [Releases ·
+> v0.1.1286-fork](https://github.com/ok0735/magpie/releases/tag/v0.1.1286-fork) — unsigned;
+> on first run SmartScreen may warn: More info → Run anyway.
+
 ### Every agent's model. One place.
 
 **Claude Code on Kimi. Codex on DeepSeek. Gemini CLI on GLM. OpenCode on your ChatGPT plan.**<br>
@@ -290,3 +301,5 @@ If magpie saved you from editing one more config file, **a ⭐ helps others find
 ## License
 
 [MIT](LICENSE)
+
+> AI生成
