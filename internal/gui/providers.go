@@ -801,6 +801,17 @@ func providerInfoWith(p provider.Provider, agents []agentUse, desktop map[string
 			out.Models = append([]modelJSON{named(m, true)}, out.Models...)
 		}
 	}
+	// a model the user turned off (Settings › Models › Disabled models) is
+	// left out of this list as well (#1867): it can't be served, and this is
+	// the list the user reads to see what the provider has. Taken at the end,
+	// so a pick of it goes with it — made earlier, a picked model would be
+	// drawn back by the loop above. From the snapshot the rows are made of,
+	// not a read of settings again
+	if offs := set.DisabledModels; len(offs) > 0 {
+		out.Models = slices.DeleteFunc(out.Models, func(j modelJSON) bool {
+			return slices.ContainsFunc(offs, func(pat string) bool { return provider.DisabledBy(pat, p.ID, j.ID) })
+		})
+	}
 	out.Exposed = len(exposed)
 	// its image models aren't among those agents chat with; the editor
 	// lists them apart, as Settings → Images is where one is picked

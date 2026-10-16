@@ -1584,6 +1584,25 @@ func Handler(w Windows, gw *gateway.Server) http.Handler {
 		}
 		writeJSON(rw, settingsState())
 	})
+	// Settings › Models › Disabled models, one model at a time: the provider
+	// editor's "Remove from the list" adds the model it names, and the page is
+	// told the list as it stands (a whole list goes through the route above)
+	mux.HandleFunc("POST /api/settings/disabled-models/add", func(rw http.ResponseWriter, r *http.Request) {
+		var in struct{ Models []string }
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+			fail(rw, err)
+			return
+		}
+		if len(in.Models) == 0 {
+			fail(rw, errors.New("no model named to remove"))
+			return
+		}
+		if err := provider.DisableModels(in.Models...); err != nil {
+			fail(rw, err)
+			return
+		}
+		writeJSON(rw, settingsState())
+	})
 	// Settings › Proxy's Test (#2076): the address Cloudflare sees a request
 	// from through the proxy in force, and without it
 	mux.HandleFunc("POST /api/proxy/check", handleProxyCheck)

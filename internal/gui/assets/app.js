@@ -235,6 +235,8 @@ const CROSS = "M4.5 4.5l7 7M11.5 4.5l-7 7";
 const PLUS = "M8 3.5v9M3.5 8h9";
 const OUT = "M6.5 3.5h-3v9h9v-3M9 3.5h3.5V7M12.5 3.5 7.5 8.5";
 const COPY_ICON = "M5.5 5.5V3.5h7v7h-2M3.5 5.5h7v7h-7z";
+// a bin, for a model taken off the lists for good
+const TRASH_ICON = "M3.6 4.6h8.8M6.4 4.6V3.2h3.2v1.4M4.8 4.6l.5 8.2h5.4l.5-8.2M6.9 6.8v3.8M9.1 6.8v3.8";
 const PENCIL = "M3.5 12.5l.5-2.5 6.8-6.8a1.2 1.2 0 0 1 1.7 0l.3.3a1.2 1.2 0 0 1 0 1.7L6 12z M9.8 4.2l2 2";
 const PUZZLE = "M6.2 2.8h2.3a1.3 1.3 0 1 1 2.5 0h2.2V5a1.3 1.3 0 1 0 0 2.6v5.6H3V7.6a1.3 1.3 0 1 1 0-2.6V2.8z";
 
@@ -10734,6 +10736,13 @@ function renderModels(p) {
         const k = kindNow(id);
         acts.push({ name: k ? t("Makes: {kind}…", { kind: t(KIND_NAMES[k]) }) : t("Makes: Auto…"), icon: "M2.5 4h11v8h-11zM6.5 6.25v3.5L9.5 8z", tip: t("Say this model makes images or videos, when the provider's model list doesn't"), run: () => pickKind(c, id) });
       }
+      // a model that lists a name but can't be called is taken off the lists
+      // from here (朱, 2026-10-16: NVIDIA's list holds a hundred models and a
+      // handful of them answer): off everywhere, out of this list and every
+      // agent's, and back only from Settings › Models › Disabled models
+      acts.push({ name: "Remove from the list", icon: TRASH_ICON,
+        tip: t("Turn {model} off everywhere: it leaves this list and every agent's list, and returns only from Settings › Models › Disabled models.", { model: id }),
+        run: () => removeModel(id) });
       openRowMenu(c, acts);
     };
     // the API it is asked on, when one is picked (or staged)
@@ -10749,6 +10758,34 @@ function renderModels(p) {
       tag.title = t("{kind}, as you said; right-click to change", { kind: t(KIND_NAMES[kind]) });
       c.append(tag);
     }
+  };
+  // removeModel takes a model off every list: it is disabled (Settings ›
+  // Models › Disabled models) and out of this editor's list, with the pick it
+  // may have had, so the box below doesn't draw it back as a picked model the
+  // vendor's list doesn't have. The pattern is qualified with the provider's
+  // id, so another provider's model of the same bare id stays. What the
+  // vendor lists later is still listed: this is one model, not a rule
+  const removeModel = async (id) => {
+    let s = null;
+    try {
+      s = await api("settings/disabled-models/add", { models: [p.id + "/" + id] });
+    } catch (e) {
+      status(e.message, "err");
+      return;
+    }
+    if (prefs && s) prefs = s; // the Settings page, if it is up, shows the new list
+    p.models = p.models.filter((m) => m.id !== id);
+    draft.chosen = draft.chosen.filter((x) => x !== id);
+    if (draft.modelPrefs) delete draft.modelPrefs[id];
+    // its pick was the last one: the provider is back to the vendor's list,
+    // not left serving nothing by a removal that wasn't about how it serves
+    if (!draft.chosen.length) draft.none = false;
+    if (modelTests[p.id]) delete modelTests[p.id][id];
+    draw();
+    drawServes();
+    drawWorkOn();
+    queueMicrotask(drawFold);
+    status(t("Removed {model}: it is off everywhere and out of this list. Settings › Models › Disabled models brings it back.", { model: id }), "ok");
   };
   const box = el("div", "models");
   const chips = el("div", "mchips");
@@ -10859,6 +10896,7 @@ function renderModels(p) {
     drawNames();
     drawFold();
     drawWorkOn();
+    drawRemovePicked();
     drawServes();
     why.textContent = decideOnly(p) ? t("Agents never see them: a routing group picks one as its classifier.")
       : !draft.chosen.length && draft.none ? t("None selected: no agent or routing group uses its models. Its balance and usage still show. Click a model to pick it.")
@@ -11258,19 +11296,38 @@ function renderModels(p) {
   };
   // every model at once (those the filter shows, when there is one), or none
   const bulk = el("div", "mbulk");
+  // the models a bulk button works on: those the filter shows, and the ones
+  // the provider can serve (a model the APIs it has can't reach is left out,
+  // as Select all has always left it out)
+  const shownIds = () => {
+    const f = (q?.value || "").trim().toLowerCase();
+    return p.models.filter((m) => !noAPI(m)).filter((m) => !f || m.id.toLowerCase().includes(f) || (m.name || "").toLowerCase().includes(f) || (m.default || "").toLowerCase().includes(f)).map((m) => m.id);
+  };
   const allOn = el("button", "text action", t("Select all"));
   allOn.title = t("Pick every model listed that this provider can serve (those the filter shows)");
   allOn.onclick = () => {
-    const f = (q?.value || "").trim().toLowerCase();
-    const ids = p.models.filter((m) => !noAPI(m)).filter((m) => !f || m.id.toLowerCase().includes(f) || (m.name || "").toLowerCase().includes(f) || (m.default || "").toLowerCase().includes(f)).map((m) => m.id);
-    draft.chosen = [...draft.chosen, ...ids.filter((id) => !draft.chosen.includes(id))];
+    draft.chosen = [...draft.chosen, ...shownIds().filter((id) => !draft.chosen.includes(id))];
     draft.none = true;
     draw();
   };
   const allOff = el("button", "text action", t("Select none"));
   allOff.title = t("Unpick every model");
   allOff.onclick = () => { draft.chosen = []; draft.none = true; draw(); };
-  bulk.append(allOn, allOff);
+  // 反选 (朱, 2026-10-16): the models the filter shows that are not picked
+  // become picked and those that are become not; what the filter hides, and
+  // the ids typed by hand, are left as they are. With Remove picked it is how
+  // a list of a hundred models a handful of which answer is emptied: pick the
+  // handful that work, invert, remove the rest
+  const invert = el("button", "text action", t("Invert selection"));
+  invert.title = t("Pick the models the filter shows that are not picked, and unpick those that are");
+  invert.onclick = () => {
+    const shown = shownIds();
+    draft.chosen = [...draft.chosen.filter((id) => !shown.includes(id)), ...shown.filter((id) => !draft.chosen.includes(id))];
+    draft.none = true;
+    draw();
+    status(t("Inverted: {n} picked", { n: draft.chosen.length }), "ok");
+  };
+  bulk.append(allOn, allOff, invert);
   // just the free ones (Discord: 是否可以支持只选择免费模型), offered only
   // when the list has both free and paid models: with none free it would
   // pick nothing, with all free it is Select all
@@ -11286,6 +11343,48 @@ function renderModels(p) {
     };
     bulk.append(freeOn);
   }
+  // Remove picked (朱, 2026-10-16): every model picked is turned off the whole
+  // way at once — out of this list and every agent's list, and refused by the
+  // gateway — for a vendor whose list holds a hundred models a handful of
+  // which answer. It asks first, as Routing's bulk remove does: this takes a
+  // lot off at once, and Settings is where each comes back
+  const removePicked = el("button", "text action danger", t("Remove picked"));
+  removePicked.onclick = async () => {
+    const ids = chosenIds();
+    if (!ids.length) return;
+    const ok = await confirmAction(t("Remove {n} models from the list?", { n: ids.length }),
+      t("They are turned off everywhere: out of this list and every agent's list, and the gateway turns away a request for them. Settings › Models › Disabled models is where they come back, one by one."),
+      t("Remove"));
+    if (!ok) return;
+    let s = null;
+    try {
+      s = await api("settings/disabled-models/add", { models: ids.map((id) => p.id + "/" + id) });
+    } catch (e) {
+      status(e.message, "err");
+      return;
+    }
+    if (prefs && s) prefs = s; // the Settings page, if it is up, shows the new list
+    const gone = new Set(ids);
+    // what it serves stays what it served: the picks the removal didn't take.
+    // An invert moved the editor's picks onto the models being removed, so
+    // with none of them left the saved ones stand in — a provider comes out
+    // of a cleanup serving the handful that work, not its whole list
+    let keep = draft.chosen.filter((id) => !gone.has(id));
+    if (!keep.length) keep = pickedOf(p).filter((id) => !gone.has(id));
+    p.models = p.models.filter((m) => !gone.has(m.id));
+    draft.chosen = keep;
+    if (keep.length) draft.none = true;
+    draft.typed = "";
+    if (draft.modelPrefs) for (const id of ids) delete draft.modelPrefs[id];
+    draw();
+    drawServes();
+    drawWorkOn();
+    queueMicrotask(drawFold);
+    status(t("Removed {n} models: they are off everywhere and out of this list. Settings › Models › Disabled models brings them back.", { n: ids.length }), "ok");
+  };
+  const drawRemovePicked = () => { removePicked.disabled = !chosenIds().length; };
+  removePicked.title = t("Turn every model picked off everywhere, in one go: they leave this list and every agent's list");
+  bulk.append(removePicked);
   // the picks that answered Test models (H20 on Discord: 测试完很多不可用，
   // 只能一个个取消): those whose last test failed are unpicked, the rest
   // stay, an untested one too, as nothing says it doesn't work. Offered
