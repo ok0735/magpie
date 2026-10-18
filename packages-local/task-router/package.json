@@ -1,0 +1,22 @@
+{
+  "name": "@magpie-local/task-router",
+  "version": "0.1.0",
+  "description": "Classify each request by content and route it to the matching routing group",
+  "license": "MIT",
+  "magpie": {
+    "middleware": "./task-router.middleware.js"
+  },
+  "magpieOptions": {
+    "enabled": false,
+    "groups": {
+      "code": "coding",
+      "reasoning": "reasoning",
+      "chinese": "chinese"
+    },
+    "defaultGroup": "",
+    "overrideExplicitGroups": false,
+    "lookbackMessages": 3,
+    "cjkRatio": 0.25
+  },
+  "type": "module"
+}

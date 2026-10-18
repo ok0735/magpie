@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "note": "Small discriminative eval set for capability profiling. Each question has a deterministic grader; the profiler runs these through the magpie gateway per candidate model.",
+  "categories": [
+    "code",
+    "reasoning",
+    "chinese",
+    "general"
+  ],
+  "questions": [
+    {
+      "id": "code-fib",
+      "category": "code",
+      "prompt": "用 Python 写一个函数 f(n)，返回第 n 个斐波那契数（f(0)=0, f(1)=1）。给出代码，并在最后单独一行输出 f(10) 的值，格式：f(10) = <数字>",
+      "grader": {
+        "type": "contains_all",
+        "values": [
+          "def f",
+          "f(10) = 55"
+        ]
+      }
+    },
+    {
+      "id": "code-sql",
+      "category": "code",
+      "prompt": "数据库表 users(id, name, age)。写一条 SQL 统计年龄大于 18 的用户数量。只输出 SQL。",
+      "grader": {
+        "type": "contains_all",
+        "values": [
+          "select",
+          "count",
+          "where"
+        ]
+      }
+    },
+    {
+      "id": "code-bug",
+      "category": "code",
+      "prompt": "这段 Python 代码运行时会出什么错？一个词回答错在哪个元素上即可：\nfor i in range(len(arr)): arr[i+1] = arr[i]",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "indexerror",
+          "越界",
+          "out of range",
+          "i+1",
+          "最后一个"
+        ]
+      }
+    },
+    {
+      "id": "code-regex",
+      "category": "code",
+      "prompt": "写一个正则表达式，匹配中国大陆手机号（1 开头的 11 位数字，第二位是 3-9）。只输出正则本身。",
+      "grader": {
+        "type": "contains_all",
+        "values": [
+          "3-9",
+          "9}"
+        ]
+      }
+    },
+    {
+      "id": "code-git",
+      "category": "code",
+      "prompt": "Git：撤销最近一次提交、但把改动保留在工作区（不丢代码），用什么命令？写出完整命令。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "reset --soft",
+          "reset --mixed",
+          "reset head^",
+          "reset head~1"
+        ]
+      }
+    },
+    {
+      "id": "code-typeof",
+      "category": "code",
+      "prompt": "JavaScript 里 typeof null 的返回值是什么？只回答这个返回值。",
+      "grader": {
+        "type": "exact",
+        "value": "object"
+      }
+    },
+    {
+      "id": "reason-lotus",
+      "category": "reasoning",
+      "prompt": "池塘里的荷花每天覆盖面积翻一番，48 天正好铺满整个池塘。问第几天铺满一半？只回答数字。",
+      "grader": {
+        "type": "exact",
+        "value": "47"
+      }
+    },
+    {
+      "id": "reason-cats",
+      "category": "reasoning",
+      "prompt": "3 只猫 3 分钟能抓 3 只老鼠。照此效率，9 只猫抓 9 只老鼠需要几分钟？只回答数字。",
+      "grader": {
+        "type": "regex",
+        "values": [
+          "(^|[^0-9.])3($|[^0-9.])"
+        ]
+      }
+    },
+    {
+      "id": "reason-paradox",
+      "category": "reasoning",
+      "prompt": "小明说：'我正在说的这句话是假的。' 这句话是真还是假？",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "悖论",
+          "无法判定",
+          "不能判定",
+          "矛盾",
+          "既不真也不假",
+          "paradox",
+          "self-referential",
+          "自指"
+        ]
+      }
+    },
+    {
+      "id": "reason-price",
+      "category": "reasoning",
+      "prompt": "一件衣服先涨价 10%，再降价 10%，现价是 99 元。原价是多少元？只回答数字。",
+      "grader": {
+        "type": "exact",
+        "value": "100"
+      }
+    },
+    {
+      "id": "reason-clock",
+      "category": "reasoning",
+      "prompt": "3 点 15 分时，钟表时针与分针的夹角是多少度？只回答数字。",
+      "grader": {
+        "type": "exact",
+        "value": "7.5"
+      }
+    },
+    {
+      "id": "reason-queue",
+      "category": "reasoning",
+      "prompt": "5 个人排成一排照相，甲不能站两端，且乙必须紧挨在甲的右边。共有多少种排法？只回答数字。",
+      "grader": {
+        "type": "exact",
+        "value": "12"
+      }
+    },
+    {
+      "id": "zh-idiom",
+      "category": "chinese",
+      "prompt": "成语'画蛇添足'是什么意思？用一句话解释。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "多此一举",
+          "多余",
+          "没有必要",
+          "节外生枝",
+          "反而坏事",
+          "弄巧成拙"
+        ]
+      }
+    },
+    {
+      "id": "zh-translate",
+      "category": "chinese",
+      "prompt": "把这句话翻译成英文：今天天气很好，我们去公园散步吧。",
+      "grader": {
+        "type": "contains_all",
+        "values": [
+          "weather",
+          "park"
+        ]
+      }
+    },
+    {
+      "id": "zh-words",
+      "category": "chinese",
+      "prompt": "'委托'和'托付'有什么区别？请分别用这两个词各造一个句子。",
+      "grader": {
+        "type": "contains_all",
+        "values": [
+          "委托",
+          "托付"
+        ]
+      }
+    },
+    {
+      "id": "zh-poem",
+      "category": "chinese",
+      "prompt": "写出一句含'月'字的著名唐诗，并注明作者。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "床前明月光",
+          "海上生明月",
+          "月落乌啼",
+          "明月几时有",
+          "春江潮水",
+          "月涌大江流",
+          "露从今夜白"
+        ]
+      }
+    },
+    {
+      "id": "zh-fox",
+      "category": "chinese",
+      "prompt": "把 'The quick brown fox jumps over the lazy dog' 翻译成通顺的中文。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "狐",
+          "狗"
+        ]
+      }
+    },
+    {
+      "id": "zh-de",
+      "category": "chinese",
+      "prompt": "'的'、'地'、'得' 三个字在用法上怎么区分？简要说明。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "修饰",
+          "形容词",
+          "副词",
+          "名词",
+          "动词后",
+          "补语"
+        ]
+      }
+    },
+    {
+      "id": "gen-h2o",
+      "category": "general",
+      "prompt": "水的化学式是什么？只回答化学式。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "h2o",
+          "h₂o"
+        ]
+      }
+    },
+    {
+      "id": "gen-paris",
+      "category": "general",
+      "prompt": "法国的首都是哪座城市？只回答城市名。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "paris",
+          "巴黎"
+        ]
+      }
+    },
+    {
+      "id": "gen-year",
+      "category": "general",
+      "prompt": "平年一年有多少天？只回答数字。",
+      "grader": {
+        "type": "exact",
+        "value": "365"
+      }
+    },
+    {
+      "id": "gen-404",
+      "category": "general",
+      "prompt": "HTTP 状态码 404 表示什么意思？一句话说明。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "未找到",
+          "找不到",
+          "不存在",
+          "not found"
+        ]
+      }
+    },
+    {
+      "id": "gen-pi",
+      "category": "general",
+      "prompt": "圆周率 π 小数点后前 5 位是什么？只回答这 5 位数字。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "14159"
+        ]
+      }
+    },
+    {
+      "id": "gen-jupiter",
+      "category": "general",
+      "prompt": "太阳系体积最大的行星是哪个？只回答行星名。",
+      "grader": {
+        "type": "contains_any",
+        "values": [
+          "木星",
+          "jupiter"
+        ]
+      }
+    }
+  ]
+}
